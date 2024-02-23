@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+Enter host ID: <input type="text" id="idTextInput">
+<button name="subject" onclick="onSubscribe()" type="submit">Subscribe</button>
+<br>
+<canvas id="canvas" width="1280" height="720"></canvas>
+<br>
+FPS: <span id="fps">N/A</span>
+
+<script src="lib/jquery.min.js"></script>
+
+<!-- DEBUG INCLUDE -->
+<script src="../libraries/three-math.min.js"></script>
+<script src="../src/Med3D.js"></script>
+
+<!-- LOADERS -->
+<script src="../src/loaders/Cache.js"></script>
+<script src="../src/loaders/LoadingManager.js"></script>
+<script src="../src/loaders/XHRLoader.js"></script>
+<script src="../src/loaders/ShaderLoader.js"></script>
+<script src="../src/loaders/ObjLoader.js"></script>
+<script src="../src/marching_cubes/MHDReader.js"></script>
+
+<!-- ONLINE INTERACTION -->
+<script src="../src/online_interaction/UpdateListener.js"></script>
+<script src="../src/online_interaction/ScenePublisher.js"></script>
+<!-- CORE -->
+<script src="../src/core/BufferAttribute.js"></script>
+<script src="../src/core/GLAttributeManager.js"></script>
+<script src="../src/core/GLTextureManager.js"></script>
+<script src="../src/core/GLManager.js"></script>
+<script src="../src/core/Object3D.js"></script>
+<script src="../src/core/Scene.js"></script>
+
+<!-- CAMERA -->
+<script src="../src/cameras/Camera.js"></script>
+<script src="../src/cameras/PerspectiveCamera.js"></script>
+
+<!-- LIGHTS -->
+<script src="../src/lights/Light.js"></script>
+<script src="../src/lights/AmbientLight.js"></script>
+<script src="../src/lights/DirectionalLight.js"></script>
+<script src="../src/lights/PointLight.js"></script>
+
+<script src="../src/textures/Texture.js"></script>
+<script src="../src/renderers/RenderTarget.js"></script>
+
+<!-- MATERIALS -->
+<script src="../src/materials/Material.js"></script>
+<script src="../src/materials/MeshBasicMaterial.js"></script>
+<script src="../src/materials/MeshPhongMaterial.js"></script>
+
+<!-- OBJECTS -->
+<script src="../src/objects/Geometry.js"></script>
+<script src="../src/objects/Mesh.js"></script>
+<script src="../src/objects/Group.js"></script>
+<script src="../src/objects/Quad.js"></script>
+<script src="../src/objects/Contour.js"></script>
+<script src="../src/objects/Circle.js"></script>
+<script src="../src/objects/Line.js"></script>
+
+<script src="../src/core/Raycaster.js"></script>
+
+<!-- PROGRAM MANAGEMENT -->
+<script src="../src/program_management/GLProgram.js"></script>
+<script src="../src/program_management/GLProgramManager.js"></script>
+
+<!-- RENDERS -->
+<script src="../src/renderers/Renderer.js"></script>
+<script src="../src/renderers/MeshRenderer.js"></script>
+
+<script src="../libraries/socket.io-1.4.5.js"></script>
+<script src="../src/controls/KeyboardInput.js"></script>
+<!-- <script src="scripts/Input.js"></script>-->
+
+<script src="../src/marching_cubes/MarchingCubes.js"></script>
+
+<!-- ONLINE INTERACTION -->
+<script src="../src/online_interaction/ScenePublisher.js"></script>
+<script src="../src/online_interaction/SceneSubscriber.js"></script>
+
+<script>
+    var activeCamera = 0;
+    var cameras;
+    var scene = new M3D.Scene();
+    scene.add(new M3D.AmbientLight());
+
+    // Initialize renderer
+    var renderer = new M3D.MeshRenderer(document.getElementById("canvas"), M3D.WEBGL2);
+    // Set path to shader files
+    renderer.addShaderLoaderUrls("../src/shaders");
+
+    var listener = new M3D.SceneSubscriberListener(function (status, s, c) {
+        scene.add(s[0]);
+
+        for (var userId in c) {
+            cameras = c[userId];
+            activeCamera = cameras[0];
+            break;
+        }
+
+        animate()
+    });
+
+    var sceneSubscriber = new M3D.SceneSubscriber(listener);
+
+    function animate() {
+        requestAnimationFrame(animate);
+        calculateFps();
+
+        /*if (sceneSubscriber.isDirty) {
+            sceneSubscriber.update()
+        }*/
+
+        renderer.render(scene, activeCamera);
+    }
+
+
+    // FPS calculation
+    var timeNow = 0, timeLast = 0, fps = 0;
+    function calculateFps() {
+        timeNow = new Date().getTime();
+        fps++;
+
+        if (timeNow - timeLast >= 1000) {
+            //Write value in HTML
+            //multiply with 1000.0 / (timeNow - timeLast) for accuracy
+            document.getElementById("fps").innerHTML = Number(fps * 1000.0 / (timeNow - timeLast)).toPrecision( 5 );
+
+            //reset
+            timeLast = timeNow;
+            fps = 0;
+        }
+    }
+
+    function onSubscribe() {
+        var id = document.getElementById("idTextInput").value;
+        sceneSubscriber.subscribe(id);
+    }
+
+    document.addEventListener('keydown', function(event) {
+        var camIdx = 0;
+
+        return function(event) {
+            if (event.keyCode === 67) {
+                camIdx = (camIdx + 1) % cameras.length;
+                activeCamera = cameras[camIdx];
+            }
+        }
+    }());
+</script>
+
+</body>
+</html>

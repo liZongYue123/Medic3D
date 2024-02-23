@@ -1,0 +1,48 @@
+<span>
+    <div class="sidebar-content-title">
+      Text Annotations
+    </div>
+
+    <div class="sidebar-content" style="height: calc(100% - 73px);">
+
+        <div class="list-group mCustomScrollbar" data-mcs-axis="y" style="-webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; height: 100%;">
+
+            <div class="list-group-item med3d-annotation-list-item" ng-repeat="ann in annotations.list" ng-click="toggleActive($index)" ng-style="!ann.active && {'background-color': '#888888'}">
+
+                <a class="med3d-annotation-sidebar-title">
+                    {{ann.title}}
+                </a>
+
+                <a class="med3d-annotation-list-remove-item" ng-click="rmAnnotation($index)">
+                      <img src="assets/img/bin.png">
+                </a>
+            </div>
+
+            <div class="input-group" style="margin-left: 10px;">
+                <div class="tooltip-wrapper" data-placement="right" data-toggle="tooltip" title="Please finish current annotation." style="display: inline-block;">
+                    <button id="newAnnotationButton" type="button" class="btn med3d-btn-primary" style="margin-left: 7px; border-radius: 5px 5px 5px 5px" ng-click="addAnnotation()">New</button>
+                </div>
+            </div>
+
+            <span ng-show="getKeys(annotations.sharedList).length > 0">
+                <hr class="med3d-sidebar-hr">
+                <div class="sidebar-content-title">
+                    Shared
+                </div>
+                <div ng-repeat="(id, data) in annotations.sharedList" ng-style="$index > 0 && {'margin-top':'10px'}">
+                    <div class="sidebar-sub-content-title" style="font-size: small; font-weight: 600">
+                        User: {{data.ownerUsername}}
+                    </div>
+                    <div class="list-group-item med3d-annotation-list-item" ng-repeat="ann in data.list" ng-click="toggleActiveShared(id, $index)" ng-style="!ann.active && {'background-color': '#888888'}">
+                        <a class="med3d-annotation-sidebar-title">
+                            {{ann.title}}
+                        </a>
+                    </div>
+                </div>
+            </span>
+
+            <div style="padding-bottom: 10px"></div>
+        </div>
+
+    </div>
+</span>

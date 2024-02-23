@@ -1,0 +1,19 @@
+#if (A_A && C)
+    #for test_A in 10 to 0
+        #if (B)
+            b is true
+        #fi
+        value = ##test_A
+    #end
+#else
+    #for test in 4 to z
+        #if (B)
+            b is true
+        #fi
+        value = ##test
+    #end
+#fi
+
+##z
+##z
+##z

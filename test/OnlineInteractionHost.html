@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<canvas id="canvas" width="1920" height="1080"></canvas>
+<br>
+FPS: <span id="fps">N/A</span>
+
+<script src="lib/jquery.min.js"></script>
+
+<!-- DEBUG INCLUDE -->
+<script src="../libraries/three-math.min.js"></script>
+<script src="../src/Med3D.js"></script>
+
+<!-- LOADERS -->
+<script src="../src/loaders/Cache.js"></script>
+<script src="../src/loaders/LoadingManager.js"></script>
+<script src="../src/loaders/XHRLoader.js"></script>
+<script src="../src/loaders/ShaderLoader.js"></script>
+<script src="../src/loaders/ObjLoader.js"></script>
+<script src="../src/marching_cubes/MHDReader.js"></script>
+
+<!-- ONLINE INTERACTION -->
+<script src="../src/online_interaction/UpdateListener.js"></script>
+<script src="../src/online_interaction/ScenePublisher.js"></script>
+<!-- CORE -->
+<script src="../src/core/BufferAttribute.js"></script>
+<script src="../src/core/GLAttributeManager.js"></script>
+<script src="../src/core/GLTextureManager.js"></script>
+<script src="../src/core/GLManager.js"></script>
+<script src="../src/core/Object3D.js"></script>
+<script src="../src/core/Scene.js"></script>
+
+<!-- CAMERA -->
+<script src="../src/cameras/Camera.js"></script>
+<script src="../src/cameras/PerspectiveCamera.js"></script>
+<script src="../src/cameras/OrthographicCamera.js"></script>
+
+<!-- LIGHTS -->
+<script src="../src/lights/Light.js"></script>
+<script src="../src/lights/AmbientLight.js"></script>
+<script src="../src/lights/DirectionalLight.js"></script>
+<script src="../src/lights/PointLight.js"></script>
+
+<script src="../src/textures/Texture.js"></script>
+<script src="../src/renderers/RenderTarget.js"></script>
+
+<!-- MATERIALS -->
+<script src="../src/materials/Material.js"></script>
+<script src="../src/materials/MeshBasicMaterial.js"></script>
+<script src="../src/materials/MeshPhongMaterial.js"></script>
+
+<!-- OBJECTS -->
+<script src="../src/objects/Geometry.js"></script>
+<script src="../src/objects/Mesh.js"></script>
+<script src="../src/objects/Group.js"></script>
+<script src="../src/objects/Quad.js"></script>
+<script src="../src/objects/Contour.js"></script>
+<script src="../src/objects/Circle.js"></script>
+<script src="../src/objects/Line.js"></script>
+
+<script src="../src/core/Raycaster.js"></script>
+
+<!-- PROGRAM MANAGEMENT -->
+<script src="../src/program_management/GLProgram.js"></script>
+<script src="../src/program_management/GLProgramManager.js"></script>
+
+<!-- RENDERS -->
+<script src="../src/renderers/Renderer.js"></script>
+<script src="../src/renderers/MeshRenderer.js"></script>
+
+<script src="../libraries/socket.io-1.4.5.js"></script>
+<script src="../src/controls/KeyboardInput.js"></script>
+<!-- <script src="scripts/Input.js"></script>-->
+
+<script src="../src/marching_cubes/MarchingCubes.js"></script>
+
+<!-- ONLINE INTERACTION -->
+<script src="../src/online_interaction/ScenePublisher.js"></script>
+<script src="../src/online_interaction/SceneSubscriber.js"></script>
+
+
+<script>
+    var objects;
+    var currentCamera;
+
+    // Initialize renderer
+    var renderer = new M3D.MeshRenderer(document.getElementById("canvas"), M3D.WEBGL2);
+    // Set path to shader files
+    renderer.addShaderLoaderUrls("../src/shaders");
+
+    var group = new M3D.Group();
+    var scene = new M3D.Scene();
+    scene.add(group);
+
+    // Initialize lights and add them to the scene
+    var aLight = new M3D.AmbientLight(new THREE.Color("#222222"), 1);
+    var dLight = new M3D.DirectionalLight(new THREE.Color("#00FF00"), 1);
+    var dLight2 = new M3D.DirectionalLight(new THREE.Color("#FF0000"), 1);
+    var pLight = new M3D.PointLight(new THREE.Color("#0000FF"), 1);
+
+    pLight.position = new THREE.Vector3(40, 40, 200);
+    dLight.position = new THREE.Vector3(-1, 0, 0);
+    dLight2.position = new THREE.Vector3(1, 0, 0);
+
+    scene.add(aLight);
+    scene.add(dLight);
+    scene.add(dLight2);
+    scene.add(pLight);
+
+    //scene.add(new M3D.Quad(new THREE.Vector2(0, 10), new THREE.Vector2(10, 0), new M3D.MeshBasicMaterial()));
+    scene.add(new M3D.Circle(5, 50, new M3D.MeshBasicMaterial()));
+
+    // Camera initialization
+    var camera = new M3D.PerspectiveCamera(1.483, 16/9, 10, 2000);
+    camera.position = new THREE.Vector3(0, 0, 200);
+    currentCamera = camera;
+
+    var testCamera = new M3D.PerspectiveCamera(1.483, 16/9, 10, 2000);
+    testCamera.position = new THREE.Vector3(0, 0, 100);
+
+    // Publisher that shares the scene and camera to other users
+    var scenePublisher = new M3D.ScenePublisher([scene], [camera], function () {console.log("Data uploaded")});
+
+    // Initialize object loader and load the objects
+    var manager = new M3D.LoadingManager();
+    var loader = new M3D.ObjLoader(manager);
+
+    var keyboardRotation = {x: 0, y: 0, z: 0, reset: function() { this.x = 0; this.y = 0; this.z = 0; }};
+    var keyboardTranslation = {x: 0, y: 0, z: 0, reset: function() { this.x = 0; this.y = 0; this.z = 0; }};
+
+    var keyboardInput = M3D.KeyboardInput.instance;
+    keyboardInput.addListener(function (pressedKeys) {
+        // ROTATIONS
+        if (pressedKeys[65]) {  // A
+            keyboardRotation.y = 1;
+        }
+
+        if (pressedKeys[68]) {  // D
+            keyboardRotation.y = -1;
+        }
+
+        if (pressedKeys[87]) {  // W
+            keyboardRotation.x = 1;
+        }
+
+        if (pressedKeys[83]) {  // S
+            keyboardRotation.x = -1;
+        }
+
+        if (pressedKeys[81]) {  // Q
+            keyboardRotation.z = 1;
+        }
+
+        if (pressedKeys[69]) {  // R
+            keyboardRotation.z = -1;
+        }
+
+
+        // TRANSLATIONS
+        if (pressedKeys[39]) {  // RIGHT - Right
+            keyboardTranslation.x = 1;
+        }
+
+        if (pressedKeys[37]) {  // LEFT - Left
+            keyboardTranslation.x = -1;
+        }
+
+        if (pressedKeys[40]) {  // DOWN - Backward
+            keyboardTranslation.z = 1;
+        }
+
+        if (pressedKeys[38]) {  // UP - Forward
+            keyboardTranslation.z = -1;
+        }
+
+        if (pressedKeys[82]) {  // Q - Upward
+            keyboardTranslation.y = 1;
+        }
+
+        if (pressedKeys[70]) {  // F - Downward
+            keyboardTranslation.y = -1;
+        }
+    });
+
+    // Load objects
+    loader.load("models/untitled3.obj", function ( obj ) {
+
+        // Publish the scene
+        scenePublisher.startPublishing();
+
+        scenePublisher.addCameras(testCamera);
+
+
+        objects = obj;
+        for (var i = 0; i < obj.length; i++) {
+            obj[i].position.z = 0;
+            obj[i].material = new M3D.MeshPhongMaterial();
+            obj[i].material.specular = new THREE.Color("#999999");
+            obj[i].geometry.drawWireframe = false;
+
+            group.add(obj[i]);
+        }
+
+
+
+        animate();
+    });
+
+    var prevTime = -1, currTime, dt;
+    function animate() {
+        requestAnimationFrame(animate);
+        calculateFps();
+
+        objects[0].rotateX(0.01);
+        objects[1].rotateX(-0.01);
+        objects[2].rotateX(-0.01);
+
+        // Calculate delta time and update timestamps
+        currTime = new Date();
+        dt = (prevTime !== -1) ? currTime - prevTime : 0;
+        prevTime = currTime;
+
+        keyboardTranslation.reset();
+        keyboardRotation.reset();
+        keyboardInput.update();
+
+        currentCamera.translateX(keyboardTranslation.x * dt * 0.01);
+        currentCamera.translateY(keyboardTranslation.y * dt * 0.01);
+        currentCamera.translateZ(keyboardTranslation.z * dt * 0.1);
+
+        currentCamera.rotateX(keyboardRotation.x * dt * 0.0001);
+        currentCamera.rotateY(keyboardRotation.y  * dt * 0.0001);
+        currentCamera.rotateZ(keyboardRotation.z * dt * 0.001);
+
+        pLight.position = currentCamera.position;
+
+
+        scenePublisher.update();
+
+
+
+        renderer.render(scene, currentCamera);
+    }
+
+    // FPS calculation
+    var timeNow = 0, timeLast = 0, fps = 0;
+    function calculateFps() {
+        timeNow = new Date().getTime();
+        fps++;
+
+        if (timeNow - timeLast >= 1000) {
+            //Write value in HTML
+            //multiply with 1000.0 / (timeNow - timeLast) for accuracy
+            document.getElementById("fps").innerHTML = Number(fps * 1000.0 / (timeNow - timeLast)).toPrecision( 5 );
+
+            //reset
+            timeLast = timeNow;
+            fps = 0;
+        }
+    }
+
+    var objI = 0;
+    document.addEventListener('keydown', function(event) {
+        if (event.keyCode === 49) {
+            for (var i = 0; i < objects.length; i++) {
+                objects[i].geometry.drawWireframe = !objects[i].geometry.drawWireframe;
+            }
+        } else if (event.keyCode === 76) {
+            objects[0].material.color = new THREE.Color("#" + Math.random().toString(16).slice(2, 8));
+            objects[1].material.color = new THREE.Color("#" + Math.random().toString(16).slice(2, 8));
+            objects[2].material.color = new THREE.Color("#" + Math.random().toString(16).slice(2, 8));
+        } else if (event.keyCode === 86) {
+            dLight.color = new THREE.Color("#" + Math.random().toString(16).slice(2, 8));
+            dLight2.color = new THREE.Color("#" + Math.random().toString(16).slice(2, 8));
+            pLight.color = new THREE.Color("#" + Math.random().toString(16).slice(2, 8));
+        } else if (event.keyCode === 78) {
+            if (objI < objects.length) {
+                group.add(objects[objI]);
+                objI++;
+                console.log(objI);
+            }
+        } else if (event.keyCode === 77) {
+            if (objI > 0) {
+                objI--;
+                group.remove(objects[objI]);
+                console.log(objI);
+            }
+        } else if (event.keyCode === 67) {
+            if (currentCamera === camera) {
+                currentCamera = testCamera;
+            }
+            else {
+                currentCamera = camera;
+            }
+        }
+    });
+
+</script>
+
+</body>
+</html>

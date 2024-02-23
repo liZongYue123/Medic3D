@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body style="background-color: #4d4d4c">
+<div style="margin-bottom: 10px">
+    <b>Select MHD file:</b>  <input type="file" id="mhdFile"><br>
+</div>
+<div style="margin-bottom: 10px">
+    <b>Select RAW file</b>: <input type="file" id="rawFile"> <br>
+</div>
+<div style="margin-bottom: 10px">
+    <b>ISO Level</b>: <input type="number" id="isoValueInput"> <br>
+</div>
+
+
+<div style="margin-bottom: 10px">
+    <button onclick="uploadFile()" style="margin-bottom: 10px">Upload</button> <b><span style="color: darkred" id="warning"></span></b>
+</div>
+<!-- Specified files are not in the correct format! -->
+
+<canvas id="canvas" width="1920" height="1080"></canvas>
+
+<script src="../libraries/three-math.min.js"></script>
+<script src="../src/Med3D.js"></script>
+
+
+
+<!-- LOADERS -->
+<script src="../src/loaders/Cache.js"></script>
+<script src="../src/loaders/LoadingManager.js"></script>
+<script src="../src/loaders/XHRLoader.js"></script>
+<script src="../src/loaders/ShaderLoader.js"></script>
+<script src="../src/loaders/ObjLoader.js"></script>
+
+<!-- CORE -->
+<script src="../src/core/BufferAttribute.js"></script>
+<script src="../src/core/GLAttributeManager.js"></script>
+<script src="../src/core/GLManager.js"></script>
+<script src="../src/core/Object3D.js"></script>
+<script src="../src/core/Scene.js"></script>
+
+<!-- CAMERA -->
+<script src="../src/cameras/Camera.js"></script>
+<script src="../src/cameras/PerspectiveCamera.js"></script>
+
+<!-- LIGHTS -->
+<script src="../src/lights/Light.js"></script>
+<script src="../src/lights/AmbientLight.js"></script>
+<script src="../src/lights/DirectionalLight.js"></script>
+<script src="../src/lights/PointLight.js"></script>
+
+<!-- MATERIALS -->
+<script src="../src/materials/Material.js"></script>
+<script src="../src/materials/MeshBasicMaterial.js"></script>
+<script src="../src/materials/MeshPhongMaterial.js"></script>
+
+<!-- OBJECTS -->
+<script src="../src/objects/Geometry.js"></script>
+<script src="../src/objects/Mesh.js"></script>
+
+<!-- PROGRAM MANAGEMENT -->
+<script src="../src/program_management/GLProgram.js"></script>
+<script src="../src/program_management/GLProgramManager.js"></script>
+
+<!-- RENDERS -->
+<script src="../src/renderers/Renderer.js"></script>
+<script src="../src/renderers/MeshRenderer.js"></script>
+
+<script src="../src/marching_cubes/MarchingCubesWorker.js"></script>
+<script src="../src/marching_cubes/MarchingCubes.js"></script>
+
+<script src="../src/marching_cubes/MHDReader.js"></script>
+<script src="../src/controls/KeyboardInput.js"></script>
+
+
+<script>
+    var mouseX = 0, mouseY = 0;
+
+    var windowHalfX = window.innerWidth / 2;
+    var windowHalfY = window.innerHeight / 2;
+
+    var renderer = new M3D.MeshRenderer(document.getElementById("canvas"), M3D.WEBGL2);
+    var aLight = new M3D.AmbientLight(new THREE.Color("#330000"), 1);
+    //var dLight = new M3D.DirectionalLight(new THREE.Color("#00FF00"), 1);
+    var dLight2 = new M3D.DirectionalLight(new THREE.Color("#FF0000"), 1);
+    //var pLight = new M3D.PointLight(new THREE.Color("#0000FF"), 1);
+    //pLight.position.z = 1;
+    //dLight2.position = new THREE.Vector3(1, 0, 0);
+
+    var scene = new M3D.Scene();
+    scene.add(aLight);
+    //scene.add(dLight);
+    scene.add(dLight2);
+    //scene.add(pLight);
+
+    var camera = new M3D.PerspectiveCamera(60, 16/9, 0.1, 1000);
+
+    camera.position.z = 40;
+    camera.position.x = 0;
+    camera.position.y = 0;
+
+    renderer.addShaderLoaderUrls("../src/shaders");
+
+    var manager = new M3D.LoadingManager();
+    var loader = new M3D.ObjLoader(manager);
+    var mesh;
+
+
+    var keyboardRotation = {x: 0, y: 0, z: 0, reset: function() { this.x = 0; this.y = 0; this.z = 0; }};
+    var keyboardTranslation = {x: 0, y: 0, z: 0, reset: function() { this.x = 0; this.y = 0; this.z = 0; }};
+
+    var keyboardInput = M3D.KeyboardInput.instance;
+    keyboardInput.addListener(function (pressedKeys) {
+        // ROTATIONS
+        if (pressedKeys[65]) {  // A
+            keyboardRotation.y = 1;
+        }
+
+        if (pressedKeys[68]) {  // D
+            keyboardRotation.y = -1;
+        }
+
+        if (pressedKeys[87]) {  // W
+            keyboardRotation.x = 1;
+        }
+
+        if (pressedKeys[83]) {  // S
+            keyboardRotation.x = -1;
+        }
+
+        if (pressedKeys[81]) {  // Q
+            keyboardRotation.z = 1;
+        }
+
+        if (pressedKeys[69]) {  // R
+            keyboardRotation.z = -1;
+        }
+
+
+        // TRANSLATIONS
+        if (pressedKeys[39]) {  // RIGHT - Right
+            keyboardTranslation.x = 1;
+        }
+
+        if (pressedKeys[37]) {  // LEFT - Left
+            keyboardTranslation.x = -1;
+        }
+
+        if (pressedKeys[40]) {  // DOWN - Backward
+            keyboardTranslation.z = 1;
+        }
+
+        if (pressedKeys[38]) {  // UP - Forward
+            keyboardTranslation.z = -1;
+        }
+
+        if (pressedKeys[82]) {  // Q - Upward
+            keyboardTranslation.y = 1;
+        }
+
+        if (pressedKeys[70]) {  // F - Downward
+            keyboardTranslation.y = -1;
+        }
+    });
+
+
+    uploadFile = function() {
+        var mhd = document.getElementById("mhdFile");
+        var raw = document.getElementById("rawFile");
+        var isoValue = parseFloat(document.getElementById("isoValueInput").value);
+
+        // Validate input
+        if (mhd.files.length < 1 || raw.files.length < 1) {
+            document.getElementById("warning").innerHTML = "Please select both mhd and raw file.";
+            return;
+        }
+
+        if (isNaN(isoValue)) {
+            document.getElementById("warning").innerHTML = "Please enter the desired iso level.";
+            return;
+        }
+
+        document.getElementById("warning").innerHTML = "";
+
+        var mhdFile = mhd.files[0];
+        var rawFile = raw.files[0];
+
+        var splittedMhdName = mhdFile.name.split(".");
+        var splittedRawName = rawFile.name.split(".");
+
+        if (splittedMhdName[splittedMhdName.length - 1] !== "mhd") {
+            document.getElementById("warning").innerHTML = "Invalid MHD file.";
+        }
+        else if (splittedRawName[splittedRawName.length - 1] !== "raw") {
+            document.getElementById("warning").innerHTML = "Invalid RAW file.";
+        }
+
+        var reader = new M3D.MHDReader(function(rez) {
+            console.log(rez.data.byteLength);
+            var dim = rez.meta.dimensions;
+            var voxelDim = rez.meta.elementSpacing;
+
+            init({meta: {dimensions: {x: dim[0], y: dim[1], z: dim[2]}, voxelDimensions: {x: voxelDim[0], y: voxelDim[1], z: voxelDim[2]}, isoLevel: isoValue}, values: rez.data})
+        });
+
+        reader.fileLoad(mhdFile, rawFile);
+    };
+
+
+
+
+    function init(input) {
+        var MC = new M3D.MarchingCubes();
+
+        var start = new Date().getTime();
+
+        MC.extractMesh(input.meta, input.values, 4, function(data) {
+
+            var end = new Date().getTime();
+
+            console.log("Marching cubes execution time: " + (end - start)/1000);
+
+            var max = 0, min = 0;
+
+            for (var i = 0; i < data.length; i++) {
+                if (data[i] > max) {
+                    max = data[i];
+                }
+                if (data[i] < min) {
+                    min = data[i];
+                }
+            }
+
+            var bufferGeometry = new M3D.Geometry();
+            bufferGeometry.vertices = new M3D.BufferAttribute(new Float32Array(data), 3);
+            bufferGeometry.computeVertexNormals();
+            bufferGeometry.drawWireframe = false;
+
+            mesh = new M3D.Mesh(bufferGeometry, new M3D.MeshPhongMaterial());
+            mesh.rotateX(40);
+            mesh.position.z = 0;
+            mesh.material = new M3D.MeshPhongMaterial();
+            mesh.material.specular = new THREE.Color("#999999");
+            mesh.scale = new THREE.Vector3(100, 100, 100);
+            scene.add(mesh);
+
+
+            animate();
+        });
+    }
+
+    function fetchData(dimensions, callback) {
+        var worker = new Worker("MarchingCubesDataGenerator.js");
+
+        worker.onmessage = function (result) {
+            callback(result.data);
+        };
+
+        worker.postMessage([dimensions]);
+    }
+
+    var prevTime = -1, currTime, dt;
+    function animate() {
+        requestAnimationFrame(animate);
+        //pLight.position = camera.position;
+
+        // Calculate delta time and update timestamps
+        currTime = new Date();
+        dt = (prevTime !== -1) ? currTime - prevTime : 0;
+        prevTime = currTime;
+
+        keyboardTranslation.reset();
+        keyboardRotation.reset();
+        keyboardInput.update();
+
+        camera.translateX(keyboardTranslation.x * dt * 0.01);
+        camera.translateY(keyboardTranslation.y * dt * 0.01);
+        camera.translateZ(keyboardTranslation.z * dt * 0.01);
+
+        camera.rotateX(keyboardRotation.x * dt * 0.001);
+        camera.rotateY(keyboardRotation.y  * dt * 0.001);
+        camera.rotateZ(keyboardRotation.z * dt * 0.001);
+
+        renderer.render(scene, camera);
+    }
+
+
+    document.addEventListener('keydown', function(event) {
+       if (event.keyCode === 49) {
+           mesh.geometry.drawWireframe = !mesh.geometry.drawWireframe;
+       }
+    });
+
+</script>
+
+</body>
+</html>

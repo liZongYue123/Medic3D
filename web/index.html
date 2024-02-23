@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Med3D - Medical Web Visualisation Framework</title>
+
+    <!-- Bootstrap -->
+    <!-- build:css styles/main.css -->
+    <link href="assets/css/jquery-ui.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="assets/css/font-awesome.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap-social.css" rel="stylesheet">
+    <link href="assets/css/bootstrap-colorpicker.min.css" rel="stylesheet">
+    <link href="assets/css/mystyles.css" rel="stylesheet">
+    <link href="assets/css/sidebar.css" rel="stylesheet">
+    <link href="assets/css/chat.css" rel="stylesheet">
+    <link href="assets/css/jquery.mCustomScrollbar.min.css" rel="stylesheet">
+
+    <!-- endbuild -->
+
+    <!-- build:js scripts/main.js -->
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="assets/lib/jquery.min.js"></script>
+    <script src="assets/lib/jquery-ui.min.js"></script>
+    <script src="assets/lib/bootstrap.min.js"></script>
+    <script src="assets/lib/angular.min.js"></script>
+    <script src="assets/lib/angular-animate.min.js"></script>
+    <script src="assets/lib/angular-long-press.min.js"></script>
+    <script src="assets/lib/bootstrap-filestyle.min.js"></script>
+    <script src="assets/lib/clipboard.min.js"></script>
+    <script src="assets/lib/sidebar.js"></script>
+    <script src="assets/lib/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script src="assets/lib/bootstrap-colorpicker.min.js"></script>
+    <!-- endbuild -->
+
+    <!-- Project -->
+    <script src="app/app.js"></script>
+
+    <script src="app/components/filters/filters.js"></script>
+
+    <!-- Services -->
+    <script src="app/components/settings/settingsService.js"></script>
+    <script src="app/components/input/inputService.js"></script>
+    <script src="app/components/task_manager/taskManagerService.js"></script>
+    <script src="app/components/collaboration/sharingService.js"></script>
+
+    <!-- Factory -->
+    <script src="app/components/rendering/globalRenderData.js"></script>
+    <script src="app/components/annotations/annotationsGlobalData.js"></script>
+
+    <!-- Helper classes -->
+    <script src="app/components/annotations/DrawingLayer.js"></script>
+    <script src="app/components/annotations/DrawnAnnotation.js"></script>
+    <script src="app/components/cameras/CameraManager.js"></script>
+    <script src="app/components/collaboration/DrawnAnnotationSharing.js"></script>
+
+    <!-- Controllers -->
+    <script src="app/components/input/navigatorController.js"></script>
+    <script src="app/components/modals/settings/settingsModalController.js"></script>
+    <script src="app/components/rendering/renderingController.js"></script>
+    <script src="app/components/modals/objLoading/meshLoadingController.js"></script>
+    <script src="app/components/modals/volumeLoading/volumeLoadingController.js"></script>
+    <script src="app/components/task_manager/taskManagerController.js"></script>
+    <script src="app/components/annotations/annotationsSidebarController.js"></script>
+    <script src="app/components/annotations/annotationsWidgetController.js"></script>
+    <script src="app/components/collaboration/sharingController.js"></script>
+    <script src="app/components/navbar/navbarController.js"></script>
+    <script src="app/components/chat/chatController.js"></script>
+    <script src="app/components/cameras/camerasSidebarController.js"></script>
+
+    <!-- Directives -->
+    <script src="app/components/task_manager/taskProgressDirective.js"></script>
+    <script src="app/components/modals/volumeLoading/marchingCubesDirective.js"></script>
+    <script src="app/components/modals/objLoading/objLoaderDirective.js"></script>
+    <script src="app/components/rendering/canvasDirective.js"></script>
+    <script src="app/components/modals/settings/display/displaySettingsModalDirective.js"></script>
+    <script src="app/components/modals/settings/input/inputSettingsModalDirective.js"></script>
+    <script src="app/components/modals/misc/basicModalDirective.js"></script>
+    <script src="app/components/input/navigatorDirective.js"></script>
+    <script src="app/components/annotations/annotationsSidebarDirective.js"></script>
+    <script src="app/components/annotations/drawnAnnotationsSidebarDirective.js"></script>
+    <script src="app/components/annotations/annotationWidgetDirective.js"></script>
+    <script src="app/components/annotations/newAnnotationWidgetDirective.js"></script>
+    <script src="app/components/collaboration/sharingHostModalDirective.js"></script>
+    <script src="app/components/collaboration/sharingClientModalDirective.js"></script>
+    <script src="app/components/navbar/navbarDirective.js"></script>
+    <script src="app/components/chat/chatDirective.js"></script>
+    <script src="app/components/cameras/camerasSidebarDirective.js"></script>
+    <!-- DEBUG INCLUDE -->
+    <script src="../libraries/three-math.min.js"></script>
+    <script src="../src/Med3D.js"></script>
+
+    <!-- MATH -->
+    <script src="../src/math/Math.js"></script>
+    <script src="../src/math/Spherical.js"></script>
+
+    <!-- LOADERS -->
+    <script src="../src/loaders/Cache.js"></script>
+    <script src="../src/loaders/LoadingManager.js"></script>
+    <script src="../src/loaders/XHRLoader.js"></script>
+    <script src="../src/loaders/ShaderLoader.js"></script>
+    <script src="../src/loaders/ObjLoader.js"></script>
+    <script src="../src/marching_cubes/MHDReader.js"></script>
+
+    <!-- ONLINE INTERACTION -->
+    <script src="../src/online_interaction/UpdateListener.js"></script>
+    <script src="../src/online_interaction/ScenePublisher.js"></script>
+    <!-- CORE -->
+    <script src="../src/core/BufferAttribute.js"></script>
+    <script src="../src/core/GLAttributeManager.js"></script>
+    <script src="../src/core/GLTextureManager.js"></script>
+    <script src="../src/core/GLFrameBufferManager.js"></script>
+    <script src="../src/core/GLManager.js"></script>
+    <script src="../src/core/Object3D.js"></script>
+    <script src="../src/core/Scene.js"></script>
+
+    <!-- CAMERA -->
+    <script src="../src/cameras/Camera.js"></script>
+    <script src="../src/cameras/PerspectiveCamera.js"></script>
+    <script src="../src/cameras/OrthographicCamera.js"></script>
+    <script src="../src/cameras/RegularCameraControls.js"></script>
+    <script src="../src/cameras/OrbitCameraControls.js"></script>
+
+    <!-- LIGHTS -->
+    <script src="../src/lights/Light.js"></script>
+    <script src="../src/lights/AmbientLight.js"></script>
+    <script src="../src/lights/DirectionalLight.js"></script>
+    <script src="../src/lights/PointLight.js"></script>
+
+    <!-- TEXTURE AND RENDER TARGET -->
+    <script src="../src/textures/Texture.js"></script>
+    <script src="../src/renderers/RenderTarget.js"></script>
+
+
+    <!-- MATERIALS -->
+    <script src="../src/program_management/MaterialProgramTemplate.js"></script>
+    <script src="../src/materials/Material.js"></script>
+    <script src="../src/materials/MeshBasicMaterial.js"></script>
+    <script src="../src/materials/MeshPhongMaterial.js"></script>
+    <script src="../src/materials/CustomShaderMaterial.js"></script>
+
+    <!-- OBJECTS -->
+    <script src="../src/objects/Geometry.js"></script>
+    <script src="../src/objects/Mesh.js"></script>
+    <script src="../src/objects/Group.js"></script>
+    <script src="../src/objects/Quad.js"></script>
+    <script src="../src/objects/Contour.js"></script>
+    <script src="../src/objects/Circle.js"></script>
+    <script src="../src/objects/Line.js"></script>
+
+    <script src="../src/core/Raycaster.js"></script>
+
+    <!-- PROGRAM MANAGEMENT -->
+    <script src="../src/program_management/ShaderBuilder.js"></script>
+    <script src="../src/program_management/GLProgram.js"></script>
+    <script src="../src/program_management/GLProgramManager.js"></script>
+
+    <!-- RENDERS -->
+    <script src="../src/renderers/Renderer.js"></script>
+    <script src="../src/renderers/MeshRenderer.js"></script>
+
+    <!-- RENDER PASSES -->
+    <script src="../src/renderers/RenderPass.js"></script>
+    <script src="../src/renderers/RenderQueue.js"></script>
+
+    <!-- SOCKET -->
+    <script src="/socket.io/socket.io.js"></script>
+
+
+    <script src="../src/controls/KeyboardInput.js"></script>
+    <script src="../src/controls/GamepadInput.js"></script>
+    <script src="../src/controls/MouseInput.js"></script>
+   <!-- <script src="scripts/Input.js"></script>-->
+
+    <script src="../src/marching_cubes/MarchingCubes.js"></script>
+
+    <!-- ONLINE INTERACTION -->
+    <script src="../src/online_interaction/SocketManager.js"></script>
+    <script src="../src/online_interaction/ScenePublisher.js"></script>
+    <script src="../src/online_interaction/SceneSubscriber.js"></script>
+
+    <script src="scripts/main.js"></script>
+    <!-- DEBUG INCLUDE -->
+</head>
+
+<body ng-app="med3d">
+    <navbar ng-controller="NavbarController"></navbar>
+
+    <!-- CANVAS -->
+    <m3d-canvas ng-controller="RenderingController" shaderPath="../src/shaders"></m3d-canvas>
+
+    <div id="wrapper" >
+        <div id="sidebar-wrapper" class="hover-div">
+
+            <div id="sidebar-nav-wrapper">
+                <ul class="sidebar-nav">
+                    <li>
+                        <a href="" data-target="#annotationSidebarContent">
+                            <img class="sidebar-icon" src="assets/img/note.png"/>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="" data-target="#drawnAnnotationSidebarContent">
+                            <img class="sidebar-icon" src="assets/img/pen.png"/>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="" data-target="#camerasSidebarContent">
+                            <img class="sidebar-icon" src="assets/img/eye.png"/>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <annotations-sidebar ng-controller="AnnotationsSidebarController" toggle-id="annotationSidebarContent"></annotations-sidebar>
+
+            <drawn-annotations-sidebar ng-controller="AnnotationsSidebarController" toggle-id="drawnAnnotationSidebarContent"></drawn-annotations-sidebar>
+
+
+            <cameras-sidebar ng-controller="CamerasSidebarController" toggle-id="camerasSidebarContent"></cameras-sidebar>
+
+
+        </div>
+    </div>
+
+
+    <!-- OBJ LOADER -->
+    <obj-loader-modal ng-controller="MeshLoadingController"></obj-loader-modal>
+
+    <!-- MARCHING CUBES -->
+    <marching-cubes-modal ng-controller="VolumeLoadingController"></marching-cubes-modal>
+
+    <!-- SETTINGS -->
+    <div ng-controller="SettingsController">
+        <display-setting-modal></display-setting-modal>
+        <input-settings-modal navigator-toggle="navigatorToggle"></input-settings-modal>
+    </div>
+
+    <!-- NON-FUNCTIONAL MODALS -->
+    <basic-modal type="about"></basic-modal>
+    <basic-modal type="licence"></basic-modal>
+
+    <!-- NAVIGATORS -->
+    <div ng-controller="NavigatorController">
+        <navigator navigator-toggle="navigatorToggle" translation-values="translationValues" ng-show="navigatorToggle.translation" type="translation"></navigator>
+        <navigator navigator-toggle="navigatorToggle" rotation-values="rotationValues" ng-show="navigatorToggle.rotation" type="rotation"></navigator>
+    </div>
+
+    <span ng-controller="TaskManagerController">
+        <task-progress-directive current-task="currentTask"></task-progress-directive>
+    </span>
+
+    <div id="floatingWindow" class="modal fade floating-window">
+        <div class="modal-dialog">
+            <div class="modal-content med3d-modal">
+                <div class="modal-header med3d-modal-header">
+                    <img class="navbar-image" src="assets/img/med3D-icon.png" width="24" height="24">
+                    <button type="button" class="med3d-close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Example window</h4>
+
+                </div>
+                <div class="modal-body">
+                    <p>Test</p>
+                </div>
+                <div class="modal-footer med3d-modal-footer">
+                    <button type="button" class="btn med3d-btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn med3d-btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div ng-controller="AnnotationsWidgetController">
+        <new-annotation-widget></new-annotation-widget>
+
+        <annotation-widget ng-repeat="ann in annotations.list" annotations="annotations" current="ann"></annotation-widget>
+
+        <span ng-repeat="(id, data) in annotations.sharedList">
+            <annotation-widget ng-repeat="ann in data.list" annotations="annotations" current="ann"></annotation-widget>
+        </span>
+    </div>
+
+
+    <div ng-controller="SharingController">
+        <sharing-host-modal data-trigger="sharingHostModal"></sharing-host-modal>
+        <sharing-client-modal data-trigger="sharingClientModal"></sharing-client-modal>
+    </div>
+
+    <chat ng-controller="ChatController"></chat>
+
+    <script>
+        $(document).ready(function(){
+
+            new Clipboard(".clipboard");
+
+            $(".hover-div").stop().fadeTo("slow", 0.5);
+
+            $(".hover-div").hover(function(){
+                $(this).stop().fadeTo( "fast" , 1.0);
+            }, function(){
+                $(this).stop().fadeTo( "fast" , 0.5);
+            });
+
+            $(".floating-window").draggable({
+                handle: ".modal-header"
+            });
+
+            $('.modal-content').resizable({
+                maxHeight: 300,
+                minHeight: 115,
+                maxWidth: 300,
+                minWidth: 170
+            });
+
+        });
+
+    </script>
+</body>
+
+</html>
